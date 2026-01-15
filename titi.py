@@ -37,12 +37,4 @@ with psycopg.connect("dbname=mydb user=Daniil") as conn:
     
         conn.commit()
         
-
-
-
-
-
-
-
-
     
