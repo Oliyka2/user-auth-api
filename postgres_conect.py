@@ -26,7 +26,7 @@ with psycopg.connect("dbname=mydb user=Daniil") as conn:
             INSERT INTO test (first_name, last_name, gender, age, birth_date, email)
             VALUES (%(first_name)s, %(last_name)s, %(gender)s, %(age)s, %(birth_date)s, %(email)s)""",
             {'first_name' : person.first_name,'last_name' : person.last_name,
-            'gender' : person.gender,'age' : person.age, 'birth_date' : person.user_dates,
+            'gender' : person.gender,'age' : person.age, 'birth_date' : person.person_dates,
             'email' : person.email}
             )
         
