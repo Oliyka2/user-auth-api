@@ -17,17 +17,19 @@ with psycopg.connect("dbname=mydb user=Daniil") as conn:
                 gender VARCHAR(20) NOT NULL,
                 age INT NOT NULL,
                 birth_date DATE NOT NULL,
-                email VARCHAR(200)
+                email VARCHAR(200) UNIQUE NOT NULL,
+                password VARCHAR(200),
+                key BYTEA NOT NULL
                 );
             """)
-        
+    
         cur.execute(
             """
-            INSERT INTO test (first_name, last_name, gender, age, birth_date, email)
-            VALUES (%(first_name)s, %(last_name)s, %(gender)s, %(age)s, %(birth_date)s, %(email)s)""",
+            INSERT INTO test (first_name, last_name, gender, age, birth_date, email, password, key)
+            VALUES (%(first_name)s, %(last_name)s, %(gender)s, %(age)s, %(birth_date)s, %(email)s, %(password)s, %(key)s)""",
             {'first_name' : person.first_name,'last_name' : person.last_name,
             'gender' : person.gender,'age' : person.age, 'birth_date' : person.person_dates,
-            'email' : person.email}
+            'email' : person.email, 'password' : person.password, 'key' : person.key}
             )
         
         # cur.execute("SELECT * FROM test")

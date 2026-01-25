@@ -1,4 +1,5 @@
 from datetime import date
+from password_handler import PasswordManager
 
 
 class Person:
@@ -11,21 +12,25 @@ class Person:
         gender (str): The gender of the person
         age (int): The age of the person
         person_dates (date): The birth date of the person
-        email (str | None): The email address of the person
+        email (str): The email address of the person
+        password (str): The password of the person
+        key (str): The key associated with the person
     """
 
     def __init__(self,
                 first_name: str = 'John', last_name: str = 'Doe',
                 gender: str = 'Not specified', age: int = 36, 
                 person_dates: date = date(1990, 1, 1),
-                email: str | None = None
+                email: str = '', password: str = ''
                 ) -> None:
         self.first_name: str = first_name
         self.last_name: str = last_name
         self.gender: str = gender
         self.age: int = age
         self.person_dates: date = person_dates
-        self.email: str | None = email
+        self.email: str = email
+        self.password: str = password
+        self.key: bytes = PasswordManager().create_key()
 
 
     def identity(self) -> None:
@@ -41,7 +46,12 @@ class Person:
         self.first_name: str = input("Enter your first name: ")
         self.last_name: str = input("Enter your last name: ")
         self.gender: str = input("Enter your gender: ")
-        self.email: str | None = input("Enter your email (optional): ")
+        self.email: str = input("Enter your email: ")
+        try:
+            self.password: str = PasswordManager().encrypt_password(input("Enter your password: "), my_key=self.key)
+        except ValueError as ve:
+            print(f"Error encrypting password: {ve}")
+            self.password = ''
 
         if self.first_name == '' or self.last_name == '':
             print("First name or last name cannot be empty. Using default values.")
@@ -53,7 +63,10 @@ class Person:
             self.gender = 'Not specified'
 
         if self.email == '':
-            self.email: str | None = None
+            self.email = ''
+
+        
+        
     
 
     def how_old(self) -> None:
@@ -78,7 +91,6 @@ class Person:
     
     def __repr__(self) -> str:
         return f"Person(first_name='{self.first_name}', last_name='{self.last_name}', gender='{self.gender}', age={self.age}, person_dates={repr(self.person_dates)}, email={repr(self.email)})"
-
 
 
 
