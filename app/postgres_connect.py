@@ -8,7 +8,7 @@ from password_handler import PasswordManager
 class TestDBConnection:
 
     def __init__(self):
-        load_dotenv()
+        load_dotenv(dotenv_path='/Users/Daniil/Desktop/Project/.env')
         self.db_name = getenv("DBNAME")
         self.db_user = getenv("USER")
         self.db_password = getenv("PASSWORD")
@@ -108,3 +108,6 @@ class TestDBConnection:
             self.connection.close()
             print("Database connection closed.")
 
+db = TestDBConnection()
+db.connect()
+db.close()
