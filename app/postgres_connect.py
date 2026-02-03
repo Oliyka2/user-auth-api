@@ -1,8 +1,10 @@
-import psycopg       
+import psycopg
+from psycopg.rows import dict_row, DictRow       
 from dotenv import load_dotenv
 from os import getenv
+from typing import Any
 
-from person import Person
+from person import Person, FullPersonResponse
 from password_handler import PasswordManager
 
 class TestDBConnection:
@@ -14,7 +16,9 @@ class TestDBConnection:
         self.db_password = getenv("PASSWORD")
         self.db_host = getenv("HOST")
         self.db_port = getenv("PORT")
-        self.connection: psycopg.Connection | None = None
+        self.connection: psycopg.Connection[DictRow] | None = None
+        self.connect()
+        
 
 
     def connect(self) -> None:
@@ -23,7 +27,7 @@ class TestDBConnection:
         connect_string = f"dbname={self.db_name} user={self.db_user}\
             password={self.db_password} host={self.db_host} port={self.db_port}"
         
-        self.connection = psycopg.connect(connect_string)
+        self.connection = psycopg.connect(connect_string, row_factory=dict_row) # type: ignore
         print("Connection to the database was successful.")
 
 
@@ -70,8 +74,37 @@ class TestDBConnection:
                         birth_date, email, password, key) \
                         VALUES \
                         ({person.first_name}, {person.last_name}, {person.gender}, {person.age}, \
-                        {person.person_dates}, {person.email}, {person.password}, {person.key})")
+                        {person.birth_date}, {person.email}, {person.password}, {person.key})")
         self.connection.commit()
+    
+    def get_data(self, number: int = 100, descending: bool = False) -> list[dict[str, Any]]:
+        """Retrieve a specified number of records from the database.
+
+        Keyword Arguments:
+            number -- The number of records to retrieve (default 100).
+            descending -- Whether to retrieve records in reverse order (default False).
+
+        Raises:
+            ValueError: If no database connection is established.
+
+        Returns:
+            A list of dictionaries with column names as keys.
+        """        
+        if self.connection is None:
+            raise ValueError("No database connection. Call connect() first.")
+        
+        if descending == False:
+            with self.connection.cursor() as cur:
+                cur.execute(t"SELECT * FROM test ORDER BY id ASC LIMIT {number}")
+                rows: list[dict] = cur.fetchall() 
+                return rows
+        else:
+            with self.connection.cursor() as cur:
+                cur.execute(t"SELECT * FROM test ORDER BY id DESC LIMIT {number}")
+                rows: list[dict] = cur.fetchall() 
+                return rows
+        
+        
 
     def get_password(self) -> str | None:
         """Retrieve and decrypt a password for a given email.
@@ -97,8 +130,8 @@ class TestDBConnection:
                 print("No user with this email found.")
                 return None
             
-            password = row[0]
-            key = row[1]
+            password = row['password']
+            key = row['key']
             return PasswordManager().decrypt_password(password, key)
         
     def close(self) -> None:
@@ -107,7 +140,3 @@ class TestDBConnection:
             self.connection.commit()
             self.connection.close()
             print("Database connection closed.")
-
-db = TestDBConnection()
-db.connect()
-db.close()

@@ -1,6 +1,7 @@
 from cryptography.fernet import Fernet
 
 
+
 class PasswordManager:
     """Class to manage password encryption and decryption using Fernet symmetric encryption."""
 
@@ -72,3 +73,15 @@ class PasswordManager:
         decrypted = Fernet(my_key).decrypt(encrypted_password.encode())
         return decrypted.decode()
     
+    def strict_decrypt_password(self, encrypted_password: str , my_key: bytes) -> str:
+        """Same as decrypt_password but without optional parameters.
+
+        Arguments:
+            encrypted_password -- The encrypted password to decrypt.
+            my_key -- The key to use for decryption.
+
+        Returns:
+            The decrypted password as a string.
+        """        
+        decrypted = Fernet(my_key).decrypt(encrypted_password.encode())
+        return decrypted.decode()
