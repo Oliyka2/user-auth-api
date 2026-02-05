@@ -1,6 +1,6 @@
 from datetime import date
 from pydantic import BaseModel, Field, field_validator
-from password_handler import PasswordManager
+from password_handler import PasswordFernet, PasswordBcrypt
 
 
 class PersonCreate(BaseModel):
@@ -10,7 +10,7 @@ class PersonCreate(BaseModel):
     gender: str = Field(default='Not specified', description="The gender of the person.")
     birth_date: date = Field(..., description="The birth date of the person.")
     email: str = Field(..., description="The email address of the person.")
-    password: str = Field(..., min_length=5, description="The password of the person.")
+    password: str = Field(..., min_length=2, description="The password of the person.")
     
     @staticmethod
     def calculate_age(birth_date: date) -> int:
@@ -22,17 +22,28 @@ class PersonCreate(BaseModel):
     @staticmethod
     def key() -> bytes:
         """Generate a new encryption key."""
-        return PasswordManager().create_key()
+        return PasswordFernet().create_key()
     
     @staticmethod
     def password_encryption(password: str, my_key: bytes) -> str:
         """Encrypt the password using the provided key."""
-        return PasswordManager().encrypt_password(password, my_key=my_key)
+        return PasswordFernet().encrypt_password(password, my_key=my_key)
     
     @staticmethod
     def password_decryption(encrypted_password: str, my_key: bytes) -> str:
         """Decrypt the password using the provided key."""
-        return PasswordManager().strict_decrypt_password(encrypted_password, my_key=my_key)
+        return PasswordFernet().strict_decrypt_password(encrypted_password, my_key=my_key)
+    
+    @staticmethod
+    def password_bcrypt_hash(password: str) -> str:
+        """Hash the password using bcrypt."""
+        return PasswordBcrypt.hash_password(password)
+
+    @staticmethod
+    def password_bcrypt_check(password: str, hashed_password: str) -> bool:
+        """Check the password against the bcrypt hash."""
+        return PasswordBcrypt.check_password(password, hashed_password)
+    
 
 class PersonResponse(BaseModel):
     """Schema for person data returned from API."""
@@ -48,14 +59,18 @@ class FullPersonResponse(PersonResponse):
     """Schema for full person data including password and key."""
     password: str = Field(..., description="The password of the person.")
     key: bytes = Field(..., description="The key associated with the person.")
+    
+class PersonBcrypt(PersonResponse):
+    """Schema for person data with bcrypt hashed password."""
+    hash_password: str = Field(..., description="The bcrypt hashed password of the person.")
 
 
 class PersonUpdate(BaseModel):
-    first_name: str | None = Field(..., description="The first name of the person.")
-    last_name: str | None = Field(..., description="The last name of the person.")
-    gender: str | None = Field(..., description="The gender of the person.")
-    birth_date: date | None = Field(..., description="The birth date of the person.")
-    password: str | None = Field(..., description="The password of the person.")
+    first_name: str | None = Field(default=None, description="The first name of the person.", examples=[None])
+    last_name: str | None = Field(default=None, description="The last name of the person.", examples=[None])
+    gender: str | None = Field(default=None, description="The gender of the person.", examples=[None])
+    birth_date: date | None = Field(default=None, description="The birth date of the person.", examples=[None])
+    password: str | None = Field(default=None, description="The password of the person.", examples=[None])
 
 
 class Person():
@@ -74,7 +89,7 @@ class Person():
 
     def identity(self) -> None:
         """Gather personal information and calculate age."""
-        self.key = PasswordManager().create_key()
+        self.key = PasswordFernet().create_key()
         self.personal_info()
         self.how_old()
 
@@ -87,7 +102,7 @@ class Person():
         self.email = input("Enter your email: ")
         try:
             password_input = input("Enter your password: ")
-            self.password = PasswordManager().encrypt_password(
+            self.password = PasswordFernet().encrypt_password(
                 password_input,
                 my_key=self.key
             )

@@ -1,8 +1,35 @@
 from cryptography.fernet import Fernet
+import bcrypt
 
 
+class PasswordBcrypt:
+    
+    @staticmethod
+    def hash_password(plain_password: str) -> str:
+        """Hash a plaintext password using bcrypt.
 
-class PasswordManager:
+        Arguments:
+            plain_password -- The plaintext password to hash.
+
+        Returns:
+            The hashed password as a string.
+        """        
+        return bcrypt.hashpw(plain_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    
+    @staticmethod
+    def check_password(plain_password: str, hashed_password: str) -> bool:
+        """Check if a plaintext password matches a hashed password using bcrypt.
+
+        Arguments:
+            plain_password -- The plaintext password to check.
+            hashed_password -- The hashed password to compare against.
+        Returns:
+            True if the passwords match, False otherwise.
+        """        
+        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+
+
+class PasswordFernet:
     """Class to manage password encryption and decryption using Fernet symmetric encryption."""
 
     def __init__(self) -> None:

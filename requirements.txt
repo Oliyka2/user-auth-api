@@ -2,3 +2,5 @@ fastapi[standard]
 psycopg[binary]
 python-dotenv
 cryptography
+pyjwt
+bcrypt
