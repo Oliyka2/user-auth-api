@@ -1,6 +1,6 @@
 from datetime import date
 from pydantic import BaseModel, Field, field_validator
-from password_handler import PasswordFernet, PasswordBcrypt
+from app.password_handler import PasswordFernet, PasswordBcrypt
 
 
 class PersonCreate(BaseModel):
@@ -72,6 +72,18 @@ class PersonUpdate(BaseModel):
     birth_date: date | None = Field(default=None, description="The birth date of the person.", examples=[None])
     password: str | None = Field(default=None, description="The password of the person.", examples=[None])
 
+class PersonLogin(BaseModel):
+    email: str = Field(..., description="The email address of the person.")
+    password: str = Field(..., description="The password of the person.")
+    
+class PersonTokenResponse(BaseModel):
+    access_token: str = Field(..., description="The JWT access token for the person.")
+    token_type: str = Field(..., description="The type of the token, typically 'bearer'.")
+    
+    
+class TokenData(BaseModel):
+    email: str | None = Field(default=None, description="The email address extracted from the token.")
+    
 
 class Person():
     """A class to represent a person with personal details.

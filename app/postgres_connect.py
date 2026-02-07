@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 from os import getenv
 from typing import Any
 
-from person import Person
-from password_handler import PasswordFernet
+from app.person import Person
+from app.password_handler import PasswordFernet
 
 class DBConnect:
     def __init__(self):
@@ -16,7 +16,6 @@ class DBConnect:
         self.db_host = getenv("HOST")
         self.db_port = getenv("PORT")
         self.connection: psycopg.Connection[DictRow] | None = None
-        self.connect()
         
 
     def connect(self) -> None:
@@ -266,3 +265,25 @@ class TestBcryptDBConnection(DBConnect):
                 print("No user with this email found.")
                 return None
             return row
+        
+    def get_hashed_password(self, email: str) -> str | None:
+        """Retrieve the hashed password for a given email from the test_bcrypt table.
+
+        Arguments:
+            email -- The email of the person whose hashed password to retrieve.
+
+        Raises:
+            ValueError: If no database connection is established.
+
+        Returns:
+            The hashed password as a string, or None if not found.
+        """        
+        if self.connection is None:
+            raise ValueError("No database connection. Call connect() first.")
+        
+        with self.connection.cursor() as cur:
+            cur.execute(t"SELECT hash_password FROM test_bcrypt WHERE email = {email}")
+            row: dict[str, Any] | None = cur.fetchone() 
+            if row is None:
+                return None
+            return row['hash_password']
